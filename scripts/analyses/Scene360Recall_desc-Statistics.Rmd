@@ -1,0 +1,149 @@
+---
+title: "Medial temporal lobe contributions to scene memory across a one-week delay"
+author: "Angelique I. Delarazan, Alexis N. Garcia, Matthew D. Grilli"
+subtitle: "Scene360Recall_Statistics"
+output: html_document
+date: "2026-09-15"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Set Up
+## Import Packages
+```{r, message = FALSE}
+library(lme4)
+library(lmerTest)
+library(emmeans)
+library(dplyr)
+```
+
+## Load Data
+```{r}
+data = read.csv("/Volumes/Achieve/R03/aidelarazan/GitHub_OSF/Scene360Recall/Data/sub-all_task-Scene360Recall_desc-Data.csv")
+emm_options(lmer.df = "satterthwaite")
+
+# 0 = immediate, 1 = one-week delay
+data$Session <- data$Session - 1
+# center age so the intercept is interpretable
+data$Age_c <- data$Age - mean(data$Age, na.rm = TRUE)
+```
+# Behavioral Recall
+
+```{r}
+for (dv in c("AI_InternalDetailsProportion", "DescriptionSimilarity", "ConsensusSimilarity", "WordCount")) {
+  f <- as.formula(paste0(dv, " ~ Session + Age_c + (1|Subject) + (1|Scene)"))
+  cat("\n===", dv, "===\n")
+  print(round(summary(lmer(f, data = data))$coefficients, 5))
+}
+```
+
+# MTL-Behavior Relationships 
+```{r}
+for (dv in c("AI_InternalDetailsProportion", "DescriptionSimilarity", "ConsensusSimilarity", "WordCount")) {
+  f <- as.formula(paste0(dv, " ~ MTL * Session + Age_c + (1|Subject) + (1|Scene)"))
+  m <- lmer(f, data = data)
+
+  cat("\n===", dv, "===\n")
+  cat("\n-- Fixed effects --\n")
+  print(round(summary(m)$coefficients, 5))
+
+  cat("\n-- Simple slopes --\n")
+  print(as.data.frame(
+    emtrends(m, ~ Session, var = "MTL", at = list(Session = c(0, 1))),
+    infer = c(TRUE, TRUE)))
+}
+```
+```{r}
+data_selfconsistency <- data %>%
+  filter(!is.na(SelfConsistency)) %>%
+  group_by(Subject, Scene) %>%
+  summarise(SelfConsistency = first(SelfConsistency),
+            Hippocampus = first(Hippocampus),
+            ERC  = first(ERC),
+            PRC  = first(PRC),
+            PHC  = first(PHC),
+            MTL  = first(MTL),
+            Age  = first(Age),
+            .groups = "drop")
+
+data_selfconsistency$Age_c <- data_selfconsistency$Age - mean(data_selfconsistency$Age, na.rm = TRUE)
+```
+
+```{r}
+local({
+  m_selfconsistency <- lmer(SelfConsistency ~ MTL + Age_c + (1|Subject) + (1|Scene),
+                            data = data_selfconsistency)
+  cat("\n=== SelfConsistency ===\n")
+  cat("\n-- Fixed effects --\n")
+  print(round(summary(m_selfconsistency)$coefficients, 5))
+})
+```
+# Exploratory: MTL Subregions-Behavior Relationships
+```{r}
+regions <- c("Hippocampus", "ERC", "PRC", "PHC")
+stopifnot(all(regions %in% names(data)))
+
+dvs <- c("AI_InternalDetailsProportion", "DescriptionSimilarity", "ConsensusSimilarity", "WordCount")
+
+run_dv <- function(dv) {
+  fits <- lapply(regions, function(r) {
+    f <- as.formula(paste0(dv, " ~ ", r,
+                           " * Session + Age_c + (1|Subject) + (1|Scene)"))
+    lmer(f, data = data)
+  })
+  names(fits) <- regions
+
+  # interaction terms + FDR
+  inter <- bind_rows(lapply(regions, function(r) {
+    co  <- summary(fits[[r]])$coefficients
+    row <- paste0(r, ":Session")
+    data.frame(Region = r,
+               b  = co[row, "Estimate"],
+               SE = co[row, "Std. Error"],
+               df = co[row, "df"],
+               t  = co[row, "t value"],
+               p  = co[row, "Pr(>|t|)"])
+  }))
+  inter$p_FDR <- p.adjust(inter$p, method = "BH")
+  inter <- inter %>% arrange(p)
+
+  # simple slopes at each session
+  slopes <- bind_rows(lapply(regions, function(r) {
+    et <- as.data.frame(emtrends(fits[[r]], ~ Session, var = r,
+                                 at = list(Session = c(0, 1))),
+                        infer = c(TRUE, TRUE))
+    names(et)[names(et) == paste0(r, ".trend")] <- "slope"
+    et$Region <- r
+    et
+  })) %>% select(Region, Session, slope, SE, df, lower.CL, upper.CL, t.ratio, p.value)
+
+  cat("\n\n========== ", dv, " ==========\n")
+  cat("\n-- Interaction (FDR across 4 regions) --\n"); print(inter, digits = 3)
+  cat("\n-- Simple slopes --\n"); print(slopes, digits = 3)
+
+  invisible(list(inter = inter, slopes = slopes))
+}
+
+out <- lapply(dvs, run_dv)
+names(out) <- dvs
+```
+
+```{r}
+regions <- c("Hippocampus","ERC","PRC","PHC")
+
+local({
+  selfconsistency_res <- bind_rows(lapply(regions, function(r) {
+    f <- as.formula(paste0("SelfConsistency ~ ", r, " + Age_c + (1|Subject) + (1|Scene)"))
+    co <- summary(lmer(f, data = data_selfconsistency))$coefficients
+    data.frame(Region = r,
+               b  = co[r,"Estimate"], SE = co[r,"Std. Error"],
+               df = co[r,"df"], t = co[r,"t value"], p = co[r,"Pr(>|t|)"])
+  }))
+  selfconsistency_res$p_FDR <- p.adjust(selfconsistency_res$p, method = "BH")
+  cat("\n\n==========  SelfConsistency  ==========\n")
+  cat("\n-- Main effect (FDR across 4 regions) --\n")
+  print(selfconsistency_res %>% arrange(p), digits = 3)
+})
+```
