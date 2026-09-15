@@ -15,7 +15,7 @@ Memory for complex experiences is often organized around the events that unfold 
 
 (B) Recall (Immediate and One-week Delay): Participants were cued with the title of each scene, presented in random order, and instructed to picture the scene in their mind and tell the experimenter everything they remember about the scene (Fig. 1B). Participants were provided a maximum time of four minutes and probed to continue if they stopped recalling before two minutes had elapsed.
 
-<img src="./figures/Scene360Recall_Fig1.jpg" width="40%" align="right" style="margin-left: 15px;">
+<img src="./figures/Scene360Recall_Fig1.jpg" width="60%" align="right" style="margin-left: 15px;">
 
 (C-D) Recall Measures: To obtain several complementary features of scene memory rather than rely on a single measure of recall performance, we characterized the content of each recall using detail-based scoring (Levine et al., 2002) and semantic similarity measures (Cer et al., 2018).
   * (C) Internal Detail Proportion: The Autobiographical Interview scoring protocol (Levine et al., 2002) was used to characterize the internal and external details produced during recall. For each trial, the transcript was segmented into individual details, then tagged by detail type. Internal Detail Proportion scores were calculated by dividing the number of Internal Details by the total number of details produced. Higher Internal Detail proportion scores reflected a greater proportion of the participant’s recall consisting of Internal Details.
