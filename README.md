@@ -28,7 +28,7 @@ MRI: A T1-weighted 3D MPRAGE anatomical image was acquired in the sagittal plane
 Volumes were obtained using Automatic Segmentation of Hippocampal Subfields (ASHS; Yushkevich et al., 2015), a multi-atlas segmentation approach that registers manually labeled atlas images to each participant’s anatomical image and combines the transformed labels via joint label fusion to derive participant-specific segmentations. We used the ASHS-PMC-T1 atlas (Xie et al., 2019), developed for 3T T1-weighted imaging. Volumes were taken from the “corr_usegray” output in native T1-weighted space.
 
 <p align="center">
-  <img src="./figures/Scene360Recall_Fig3MTLComposite.jpg" width="50%">
+  <img src="./figures/Scene360Recall_Fig3MTLComposite.jpg" width="60%">
 </p>
 
   * MTL Composite: To derive a composite measure of medial temporal lobe (MTL) volume, volumes for the hippocampus, entorhinal cortex, perirhinal cortex, and parahippocampal cortex were summed across hemispheres and standardized across participants. Following similar approaches used in prior work (Bailey et al., 2013; Pettigrew et al., 2017), each regional volume was standardized across participants and separately adjusted for intracranial volume (ICV) by regressing the standardized volume on ICV and retaining the residual. The ICV-adjusted volumes were averaged across the four regions to produce a single MTL composite, with higher values reflecting relatively greater MTL volume after accounting for ICV.
