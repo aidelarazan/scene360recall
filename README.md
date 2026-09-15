@@ -15,6 +15,7 @@ Encoding: Participants viewed eight 40-second panoramic videos depicting a varie
 
 Recall (Immediate and One-week Delay): Participants were cued with the title of each scene, presented in random order, and instructed to picture the scene in their mind and tell the experimenter everything they remember about the scene (Fig. 1B). Participants were provided a maximum time of four minutes and probed to continue if they stopped recalling before two minutes had elapsed.
 
+![Experimental Design](./figures/Scene360Recall_Fig1.jpg)
 <img src="./figures/Scene360Recall_Fig1.jpg" width="50%", align="center">
 
 Recall Measures: To obtain several complementary features of scene memory rather than rely on a single measure of recall performance, we characterized the content of each recall using detail-based scoring (Levine et al., 2002) and semantic similarity measures (Cer et al., 2018).
