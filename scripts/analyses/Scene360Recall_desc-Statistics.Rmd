@@ -1,9 +1,9 @@
 ---
 title: "Medial temporal lobe contributions to scene memory across a one-week delay"
-author: "Angelique I. Delarazan, Alexis N. Garcia, Matthew D. Grilli"
+author: "Angelique I. Delarazan, Alexis N. Garcia, Ashley A. Huggins, & Matthew D. Grilli"
 subtitle: "Scene360Recall_Statistics"
 output: html_document
-date: "2026-09-15"
+date: "2026-10-05"
 ---
 
 ```{r setup, include=FALSE}
@@ -81,7 +81,7 @@ local({
 })
 ```
 # Exploratory: MTL Subregions-Behavior Relationships
-```{r}
+```{r, message = FALSE}
 regions <- c("Hippocampus", "ERC", "PRC", "PHC")
 stopifnot(all(regions %in% names(data)))
 
@@ -94,6 +94,28 @@ run_dv <- function(dv) {
     lmer(f, data = data)
   })
   names(fits) <- regions
+
+  # main effect of region, averaged over both sessions
+  main_region <- bind_rows(lapply(regions, function(r) {
+    s <- summary(emtrends(fits[[r]], ~ 1, var = r,
+                          at = list(Session = c(0, 1))),
+                 infer = c(TRUE, TRUE))
+    data.frame(Region = r,
+               b  = s[[grep("\\.trend$", names(s))]],
+               SE = s$SE, df = s$df, t = s$t.ratio, p = s$p.value)
+  }))
+  main_region$p_FDR <- p.adjust(main_region$p, method = "BH")
+  main_region <- main_region %>% arrange(p)
+
+  # main effect of session, at average volume
+  main_session <- bind_rows(lapply(regions, function(r) {
+    s <- as.data.frame(contrast(
+      emmeans(fits[[r]], ~ Session, at = list(Session = c(0, 1))),
+      "revpairwise"))
+    data.frame(Region = r, contrast = s$contrast,
+               b = s$estimate, SE = s$SE, df = s$df,
+               t = s$t.ratio, p = s$p.value)
+  }))
 
   # interaction terms + FDR
   inter <- bind_rows(lapply(regions, function(r) {
@@ -120,10 +142,13 @@ run_dv <- function(dv) {
   })) %>% select(Region, Session, slope, SE, df, lower.CL, upper.CL, t.ratio, p.value)
 
   cat("\n\n========== ", dv, " ==========\n")
-  cat("\n-- Interaction (FDR across 4 regions) --\n"); print(inter, digits = 3)
-  cat("\n-- Simple slopes --\n"); print(slopes, digits = 3)
+  cat("\n-- Main effect of region (FDR across 4 regions) --\n"); print(main_region, digits = 3)
+  cat("\n-- Main effect of session --\n");                       print(main_session, digits = 3)
+  cat("\n-- Interaction (FDR across 4 regions) --\n");           print(inter, digits = 3)
+  cat("\n-- Simple slopes --\n");                                print(slopes, digits = 3)
 
-  invisible(list(inter = inter, slopes = slopes))
+  invisible(list(main_region = main_region, main_session = main_session,
+                 inter = inter, slopes = slopes))
 }
 
 out <- lapply(dvs, run_dv)
