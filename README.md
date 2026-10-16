@@ -3,7 +3,7 @@
 [Angelique I. Delarazan](https://aidelarazan.github.io/), Alexis N. Garcia, Ashley A. Huggins, and Matthew D. Grilli
 
 ## Project Description
-[PsyArXiv Preprint](https://osf.io/preprints/psyarxiv/5bv37_v1)
+[PsyArXiv Preprint](https://osf.io/preprints/psyarxiv/c3vfj_v1)
 
 [Open Science Framework](https://osf.io/c5pxq/overview)
 
